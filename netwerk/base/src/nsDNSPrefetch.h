@@ -20,19 +20,23 @@ class nsDNSPrefetch MOZ_FINAL : public nsIDNSListener
 public:
     NS_DECL_THREADSAFE_ISUPPORTS
     NS_DECL_NSIDNSLISTENER
-  
+
+    // Have the option of storing timing of prefetch or not
     nsDNSPrefetch(nsIURI *aURI, bool storeTiming);
     bool TimingsValid() const {
         return !mStartTimestamp.IsNull() && !mEndTimestamp.IsNull();
     }
+    // What is the structure of mozilla::Timestamp?
     // Only use the two timings if TimingsValid() returns true
     const mozilla::TimeStamp& StartTimestamp() const { return mStartTimestamp; }
     const mozilla::TimeStamp& EndTimestamp() const { return mEndTimestamp; }
 
+    // Initialise a DNS service is static, why a static function?
     static nsresult Initialize(nsIDNSService *aDNSService);
     static nsresult Shutdown();
 
     // Call one of the following methods to start the Prefetch.
+    // What is the difference?
     nsresult PrefetchHigh();
     nsresult PrefetchMedium();
     nsresult PrefetchLow();

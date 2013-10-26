@@ -603,14 +603,17 @@ nsDNSService::AsyncResolve(const nsACString  &hostname,
     nsCOMPtr<nsIEventTarget> target = target_;
     bool localDomain = false;
     {
+        // To stop a different thread from using the same resources
         MutexAutoLock lock(mLock);
 
+        // If DNS prefetch has been disabled, return the error that dns lookup queue is full.
         if (mDisablePrefetch && (flags & RESOLVE_SPECULATE))
             return NS_ERROR_DNS_LOOKUP_QUEUE_FULL;
 
+        // Does mResolver resolve the DNS
         res = mResolver;
-        idn = mIDN;
-        localDomain = mLocalDomains.GetEntry(hostname);
+        idn = mIDN; // Where does mIDN come from?
+        localDomain = mLocalDomains.GetEntry(hostname); //How is the local domain calculated from hostname?
     }
     if (!res)
         return NS_ERROR_OFFLINE;
@@ -620,17 +623,20 @@ nsDNSService::AsyncResolve(const nsACString  &hostname,
 
     const nsACString *hostPtr = &hostname;
 
+    //If local domain was calculated, set hostPtr to "localhost"
     if (localDomain) {
         hostPtr = &(NS_LITERAL_CSTRING("localhost"));
     }
 
     nsresult rv;
     nsAutoCString hostACE;
+    If there is an international domain name and hostPtr is not ASCII, convert UTF8 to ACE
     if (idn && !IsASCII(*hostPtr)) {
         if (NS_SUCCEEDED(idn->ConvertUTF8toACE(*hostPtr, hostACE)))
             hostPtr = &hostACE;
     }
 
+    Query the listener interface, if it exists and there is no event target,query the main thread interface
     nsCOMPtr<nsIXPConnectWrappedJS> wrappedListener = do_QueryInterface(listener);
     if (wrappedListener && !target) {
         nsCOMPtr<nsIThread> mainThread;

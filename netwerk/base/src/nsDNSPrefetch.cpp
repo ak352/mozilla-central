@@ -16,6 +16,9 @@ static nsIDNSService *sDNSService = nullptr;
 
 // What does NS_IF_ADDREF do?
 // Does NS_IF_RELEASE wait until sDNSService is released, or does it throw an error if it is not released?
+// If pointer is not null, then call the Release function, AddRef function. (xpcom/glue/nsISupportsUtils.h)
+// Adds a reference to a DNS service, releases the reference, like a smart pointer frees the memory once there
+// are no references to it.
 // Do these functions return an nsresult?
 nsresult
 nsDNSPrefetch::Initialize(nsIDNSService *aDNSService)
@@ -33,7 +36,7 @@ nsDNSPrefetch::Shutdown()
     return NS_OK;
 }
 
-// Where did nsDNSprefetch get the mHostname from?
+// Where did nsDNSprefetch get the mHostname from? Just converted to ASCII
 nsDNSPrefetch::nsDNSPrefetch(nsIURI *aURI, bool storeTiming)
     : mStoreTiming(storeTiming)
 {
@@ -61,6 +64,10 @@ nsDNSPrefetch::Prefetch(uint16_t flags)
     // TimingsValid() before using the timing.
     return sDNSService->AsyncResolve(mHostname, flags | nsIDNSService::RESOLVE_SPECULATE,
                                      this, nullptr, getter_AddRefs(tmpOutstanding));
+
+//AsyncResolve kicks off an asynchronous host lookup, this is the listener to be notified
+//mHostname is the IP address literal to be resolved
+//Speculative lookups return errors if prefetch is disabled by configuration (/netwerk/dns/nsIDNSService.idl)
 }
 
 // Prefetch low, medium, high set the resolve priority low for nsIDNSService

@@ -14,6 +14,9 @@
 
 static nsIDNSService *sDNSService = nullptr;
 
+// What does NS_IF_ADDREF do?
+// Does NS_IF_RELEASE wait until sDNSService is released, or does it throw an error if it is not released?
+// Do these functions return an nsresult?
 nsresult
 nsDNSPrefetch::Initialize(nsIDNSService *aDNSService)
 {
@@ -30,12 +33,15 @@ nsDNSPrefetch::Shutdown()
     return NS_OK;
 }
 
+// Where did nsDNSprefetch get the mHostname from?
 nsDNSPrefetch::nsDNSPrefetch(nsIURI *aURI, bool storeTiming)
     : mStoreTiming(storeTiming)
 {
     aURI->GetAsciiHost(mHostname);
 }
 
+
+// What do the flags stand for? How are they used by ASyncResolve?
 nsresult 
 nsDNSPrefetch::Prefetch(uint16_t flags)
 {
@@ -57,6 +63,7 @@ nsDNSPrefetch::Prefetch(uint16_t flags)
                                      this, nullptr, getter_AddRefs(tmpOutstanding));
 }
 
+// Prefetch low, medium, high set the resolve priority low for nsIDNSService
 nsresult
 nsDNSPrefetch::PrefetchLow()
 {
@@ -69,6 +76,7 @@ nsDNSPrefetch::PrefetchMedium()
     return Prefetch(nsIDNSService::RESOLVE_PRIORITY_MEDIUM);
 }
 
+// What does a zero flag do when it is handled by sDNSService.AsyncResolve?
 nsresult
 nsDNSPrefetch::PrefetchHigh()
 {
@@ -77,7 +85,8 @@ nsDNSPrefetch::PrefetchHigh()
 
 
 NS_IMPL_ISUPPORTS1(nsDNSPrefetch, nsIDNSListener)
-
+// After Lookup is complete, get end timestamp. So why do we need 
+// nsIcancelable *request, nsIDNSRecord *rec, nsresult status?
 NS_IMETHODIMP
 nsDNSPrefetch::OnLookupComplete(nsICancelable *request,
                                 nsIDNSRecord  *rec,
